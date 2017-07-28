@@ -246,10 +246,16 @@ var indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i 
     }
   };
   formatCardNumber = function(e) {
-    var card, cursor, digit, length, re, upperLength, value;
+    var card, cursor, digit, length, re, upperLength, value, imeOn;
     digit = String.fromCharCode(e.which);
     if (!/^\d+$/.test(digit)) {
-      return;
+        re = /^(Digit\d|Numpad\d)$/;
+        if (re.test(e.code)) {
+            digit = e.code.replace(/(Digit|Numpad)/, '');
+            imeOn = true;
+        } else {
+            return;
+        }
     }
     value = e.target.value;
     card = cardFromNumber(value + digit);
@@ -273,17 +279,21 @@ var indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i 
     if (re.test(value)) {
       e.preventDefault();
       return setTimeout(function() {
-        return e.target.value = value + " " + digit;
+        return e.target.value = value + " " + (imeOn ? "" : digit);
       });
     } else if (re.test(value + digit)) {
       e.preventDefault();
       return setTimeout(function() {
-        return e.target.value = (value + digit) + " ";
+        return e.target.value = (value + (imeOn ? "" : digit)) + " ";
       });
     }
   };
   formatBackCardNumber = function(e) {
     var cursor, value;
+    re = /^(Digit\d|Numpad\d)$/;
+    if (re.test(e.code)) {
+      return formatCardNumber(e);
+    }
     value = e.target.value;
     if (e.which !== 8) {
       return;
