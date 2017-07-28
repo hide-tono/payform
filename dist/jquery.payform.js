@@ -241,6 +241,7 @@ var indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i 
     var cursor;
     cursor = _getCaretPos(e.target);
     e.target.value = payform.formatCardNumber(e.target.value);
+    payform.currentValue = e.target.value;
     if ((cursor != null) && e.type !== 'change') {
       return e.target.setSelectionRange(cursor, cursor);
     }
@@ -248,9 +249,10 @@ var indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i 
   formatCardNumber = function(e) {
     var card, cursor, digit, length, re, upperLength, value, imeOn;
     digit = String.fromCharCode(e.which);
+    imeOn = false;
     if (!/^\d+$/.test(digit)) {
-        re = /^(Digit\d|Numpad\d)$/;
-        if (re.test(e.code)) {
+      re = /^(Digit\d|Numpad\d)$/;
+        if (!/^[a-z]$/.test(digit) && re.test(e.code)) {
             digit = e.code.replace(/(Digit|Numpad)/, '');
             imeOn = true;
         } else {
@@ -265,6 +267,11 @@ var indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i 
       upperLength = card.length[card.length.length - 1];
     }
     if (length >= upperLength) {
+      if (imeOn && payform.currentValue.replace(/\D/g, "").length >= upperLength) {
+        e.target.value = payform.currentValue
+      } else {
+        payform.currentValue = e.target.value;
+      }
       return;
     }
     cursor = _getCaretPos(e.target);
@@ -276,15 +283,18 @@ var indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i 
     } else {
       re = /(?:^|\s)(\d{4})$/;
     }
+    payform.currentValue = e.target.value;
     if (re.test(value)) {
       e.preventDefault();
       return setTimeout(function() {
-        return e.target.value = value + " " + (imeOn ? "" : digit);
+        e.target.value = value + " " + (imeOn ? "" : digit);
+        payform.currentValue = e.target.value;
       });
     } else if (re.test(value + digit)) {
       e.preventDefault();
       return setTimeout(function() {
-        return e.target.value = (value + (imeOn ? "" : digit)) + " ";
+        e.target.value = (value + (imeOn ? "" : digit)) + " ";
+        payform.currentValue = e.target.value;
       });
     }
   };
@@ -302,6 +312,7 @@ var indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i 
     if (cursor && cursor !== value.length) {
       return;
     }
+    payform.currentValue = e.target.value;
     if (/\d\s$/.test(value)) {
       e.preventDefault();
       return setTimeout(function() {
